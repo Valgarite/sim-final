@@ -1,8 +1,12 @@
 const start = document.querySelector('.btn-start');
+const res = document.getElementById('res');
 const [densidadActual, viaArea, resFinal, timeCheck, mensajeFestivo, momento] = ["densidadActual", "viaAerea", "resultadoFinal", "ritmo", "mensajeFestivo", "momento"].map((el) => { return document.getElementById(el) })
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 start.addEventListener('click', async () => {
+
+    res.setAttribute('class', 'flex column container container__results');
+
     const timeStep = 900
     resFinal.innerHTML = ""
 
@@ -46,7 +50,6 @@ start.addEventListener('click', async () => {
         const viaNS = new Via(false)
         const viaSN = new Via(true)
         const aerea = new Aerea()
-
 
         while (date.time < endDate) {
             let festividad = false

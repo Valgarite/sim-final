@@ -12,19 +12,19 @@
 
 <body>
     <main>
-        <section id="inputs">
-            <label for="initialDate">Fecha de Inicio:</label>
-            <input type="datetime-local" name="initialDate" id="initialDate">
+        <section class="flex column container container__inputs" id="inputs">
+            <label class="label" for="initialDate">Fecha de Inicio:</label>
+            <input class="datePicker" type="datetime-local" name="initialDate" id="initialDate">
 
-            <label for="endDate">Fecha de Fin:</label>
-            <input type="datetime-local" name="endDate" id="endDate">
+            <label class="label" for="endDate">Fecha de Fin:</label>
+            <input class="datePicker" type="datetime-local" name="endDate" id="endDate">
 
             <button type="button" class="btn btn-start">Iniciar Simulacion</button>
-            <label for="ritmo">Presione para ver como se desenvuelve la simulación.</label>
-            <input type="checkbox" id="ritmo">
+            <label class="label" for="ritmo">Presione para ver como se desenvuelve la simulación.</label>
+            <input class="checkbox" type="checkbox" id="ritmo">
             <h6>Una hora de la simulación equivale a un segundo de la vida real.</h6>
         </section>
-        <section>
+        <section id="res">
             <p id="momento"></p>
             <article id="densidadActual">
                 <p id="mensajeFestivo"></p>
