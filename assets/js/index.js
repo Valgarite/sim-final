@@ -22,10 +22,11 @@ start.addEventListener('click', async () => {
         },
         isHoliday(holiday) {
             const date = new Date(this.time * 1000);
-            console.log(date.toDateString().includes(holiday))
-            if (date.toDateString().includes(holiday)) return true;
-            else return false;
+            const formattedDate = `${date.toLocaleString('en-US', { month: 'short' })} ${date.getDate()}`
+
+            return formattedDate === holiday;
         }
+
     }
     const festividades = [
         { "fecha": "Jan 01", "descripcion": "Año Nuevo" },
@@ -39,6 +40,14 @@ start.addEventListener('click', async () => {
         { "fecha": "Dec 25", "descripcion": "Navidad" },
         { "fecha": "Dec 31", "descripcion": "Fiesta de Fin de Año" }
     ];
+    const festInfo = () => {
+        for (holiday of festividades) {
+            festividad = date.isHoliday(holiday.fecha)
+            if (festividad) {
+                return holiday.descripcion
+            }
+        }
+    }
 
     const endDate = new Date(document.getElementById('endDate').value).getTime() / 1000
 
@@ -47,15 +56,10 @@ start.addEventListener('click', async () => {
         const viaSN = new Via(true)
         const aerea = new Aerea()
 
-
         while (date.time < endDate) {
-            let festividad = false
-            for (holiday of festividades) {
-                festividad = date.isHoliday(holiday.fecha)
-                if (festividad) {
-                    mensajeFestivo.innerText = "¡Feliz " + holiday.descripcion + "!"
-                    break
-                }
+            const festividad = festInfo()
+            if (festividad) {
+                mensajeFestivo.innerText = "¡Feliz " + holiday.descripcion + "!"
             }
 
             viaNS.variarDensidad(viaNS.entrarHoraPico(date.time), 125, festividad, aerea)
@@ -67,10 +71,10 @@ start.addEventListener('click', async () => {
 
             const htmlDensidad = `
             <p>
-                La densidad actual en la vía con dirección al ${viaNS.direccion} es ${viaNS.densidadVehicular}
+                La densidad actual en la vía con dirección al ${viaNS.direccion} es ${Math.round(viaNS.densidadVehicular)}
             </p>
             <p>
-                La densidad actual en la vía con dirección al ${viaSN.direccion} es ${viaSN.densidadVehicular}
+                La densidad actual en la vía con dirección al ${viaSN.direccion} es ${Math.round(viaSN.densidadVehicular)}
             </p>
                 `
 
@@ -79,15 +83,15 @@ start.addEventListener('click', async () => {
             const preparacionAerea = (aerea.direccion == "Cambiando") ? `La vía aérea está cambiando de dirección y lleva ${aerea.cooldown / 60}m.` : "La vía aérea está abierta."
             const htmlAerea = `
             <p> Dirección actual de la vía aérea: ${aerea.direccion}</p>
-            <p> Densidad actual en la vía aérea: ${aerea.densidadVehicular}</p>
+            <p> Densidad actual en la vía aérea: ${Math.round(aerea.densidadVehicular)}</p>
             <p> ${preparacionAerea} </p>
         `
             viaArea.innerHTML = htmlAerea
 
             if (viaNS.densidadVehicular >= 125) {
-                aerea.escogerDireccion(viaNS)
+                aerea.escogerDireccion(viaNS, festividad)
             } else if (viaSN.densidadVehicular >= 125) {
-                aerea.escogerDireccion(viaSN)
+                aerea.escogerDireccion(viaSN, festividad)
             }
             if (timeCheck.checked) {
                 await sleep(500)
