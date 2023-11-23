@@ -1,9 +1,10 @@
 const start = document.querySelector('.btn-start');
-const [densidadActual, viaArea, resFinal, timeCheck, mensajeFestivo] = ["densidadActual", "viaAerea", "resultadoFinal", "ritmo", "mensajeFestivo"].map((el) => { return document.getElementById(el) })
+const [densidadActual, viaArea, resFinal, timeCheck, mensajeFestivo, momento] = ["densidadActual", "viaAerea", "resultadoFinal", "ritmo", "mensajeFestivo", "momento"].map((el) => { return document.getElementById(el) })
 const sleep = (delay) => new Promise((resolve) => setTimeout(resolve, delay))
 
 start.addEventListener('click', async () => {
     const timeStep = 900
+    resFinal.innerHTML = ""
 
     const date = {
         time: new Date(document.getElementById('initialDate').value).getTime() / 1000,
@@ -41,25 +42,30 @@ start.addEventListener('click', async () => {
 
     const endDate = new Date(document.getElementById('endDate').value).getTime() / 1000
 
-    const viaNS = new Via(false)
-    const viaSN = new Via(true)
-    const aerea = new Aerea()
+    if (endDate >= date.time + 900) {
+        const viaNS = new Via(false)
+        const viaSN = new Via(true)
+        const aerea = new Aerea()
 
-    while (date.time < endDate) {
-        let festividad = false
-        for (holiday of festividades) {
-            festividad = date.isHoliday(holiday.fecha)
-            if (festividad) {
-                mensajeFestivo.innerText = "¡Feliz " + holiday.descripcion + "!"
-                break
+
+        while (date.time < endDate) {
+            let festividad = false
+            for (holiday of festividades) {
+                festividad = date.isHoliday(holiday.fecha)
+                if (festividad) {
+                    mensajeFestivo.innerText = "¡Feliz " + holiday.descripcion + "!"
+                    break
+                }
             }
-        }
 
-        viaNS.variarDensidad(viaNS.entrarHoraPico(date.time), 125, festividad, aerea)
-        viaSN.variarDensidad(viaSN.entrarHoraPico(date.time), 125, festividad, aerea)
-        viaNS.revisarEmbotellamiento()
-        viaSN.revisarEmbotellamiento()
-        const htmlDensidad = `
+            viaNS.variarDensidad(viaNS.entrarHoraPico(date.time), 125, festividad, aerea)
+            viaSN.variarDensidad(viaSN.entrarHoraPico(date.time), 125, festividad, aerea)
+            viaNS.revisarEmbotellamiento()
+            viaSN.revisarEmbotellamiento()
+
+            momento.innerText = `Simulacion hecha en: ${new Date(date.time * 1000).toLocaleString('es-US')}`
+
+            const htmlDensidad = `
             <p>
                 La densidad actual en la vía con dirección al ${viaNS.direccion} es ${viaNS.densidadVehicular}
             </p>
@@ -68,34 +74,38 @@ start.addEventListener('click', async () => {
             </p>
                 `
 
-        densidadActual.innerHTML = htmlDensidad
+            densidadActual.innerHTML = htmlDensidad
 
-        const preparacionAerea = (aerea.direccion == "Cambiando") ? `La vía aérea está cambiando de dirección y lleva ${aerea.cooldown / 60}m.` : "La vía aérea está abierta."
-        const htmlAerea = `
+            const preparacionAerea = (aerea.direccion == "Cambiando") ? `La vía aérea está cambiando de dirección y lleva ${aerea.cooldown / 60}m.` : "La vía aérea está abierta."
+            const htmlAerea = `
             <p> Dirección actual de la vía aérea: ${aerea.direccion}</p>
             <p> Densidad actual en la vía aérea: ${aerea.densidadVehicular}</p>
             <p> ${preparacionAerea} </p>
         `
-        viaArea.innerHTML = htmlAerea
+            viaArea.innerHTML = htmlAerea
 
-        if (viaNS.densidadVehicular >= 125) {
-            aerea.escogerDireccion(viaNS)
-        } else if (viaSN.densidadVehicular >= 125) {
-            aerea.escogerDireccion(viaSN)
+            if (viaNS.densidadVehicular >= 125) {
+                aerea.escogerDireccion(viaNS)
+            } else if (viaSN.densidadVehicular >= 125) {
+                aerea.escogerDireccion(viaSN)
+            }
+            if (timeCheck.checked) {
+                await sleep(500)
+            }
+            date.forwardStep();
+            aerea.enfriar(timeStep)
         }
-        if (timeCheck.checked) {
-            await sleep(250)
-        }
-        date.forwardStep();
-        aerea.enfriar(timeStep)
-    }
 
-    const [reporteNS, reporteSN] = [viaNS, viaSN].map((el) => { return el.reportesFinales() })
-    const htmlReporte = `
+        const [reporteNS, reporteSN] = [viaNS, viaSN].map((el) => { return el.reportesFinales() })
+        const htmlReporte = `
         <p>Embotellamientos en vía con dirección al ${viaSN.direccion}: ${reporteSN.embotellamientos}</p>
         <p>Veces que se abrió la vía aérea con dirección al: ${viaSN.direccion}: ${reporteSN.aperturas}</p>
         <p>Embotellamientos en vía con dirección al: ${viaNS.direccion}: ${reporteNS.embotellamientos}</p>
         <p>Veces que se abrió la vía aérea con dirección al: ${viaNS.direccion}: ${reporteNS.aperturas}</p>
     `
-    resFinal.innerHTML = htmlReporte
-})
+        resFinal.innerHTML = htmlReporte
+    } else {
+        resFinal.innerHTML = `La fecha de fin tiene que ser mayor a la de inicio por un minimo de 15 minutos.`;
+    }
+}
+)
