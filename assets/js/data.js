@@ -27,6 +27,15 @@ const circulacion = {
     }
 }
 
+const eventosDetienenTransito = [
+    "Mantenimiento Áreas Verdes",
+    "Mantenimiento Sistemas Eléctricos",
+    "Reparaciones menores en vía",
+    "Colisiones Varias",
+    "Cierres Preventivos",
+    "Manifestaciones Generales (Colectividad y sectores Particulares)"
+];
+
 class Via {
     constructor(direccionNorte) {
         this.densidadVehicular = 0
@@ -39,17 +48,12 @@ class Via {
         }
     }
     variarDensidad(minimo, maximo, festivo, aerea) {
-        if (!festivo) {
-            const densidadAleatoria = random(minimo, maximo);
-            if (this.direccion == aerea.direccion) {
-                this.densidadVehicular = densidadAleatoria * 0.6
-                aerea.densidadVehicular = densidadAleatoria * 0.4
-            } else {
-                this.densidadVehicular = densidadAleatoria
-            }
+        const densidadAleatoria = !festivo ? random(minimo, maximo) : random(tope, maximo)
+        if (this.direccion == aerea.direccion) {
+            this.densidadVehicular = densidadAleatoria * 0.6
+            aerea.densidadVehicular = densidadAleatoria * 0.4
         } else {
-            console.log(festivo)
-            this.densidadVehicular = random(tope, maximo)
+            this.densidadVehicular = densidadAleatoria
         }
     }
     entrarHoraPico(unixTimestamp) {
@@ -100,15 +104,19 @@ class Aerea {
         this.densidadVehicular = 0
         this.proximaDireccion = "Norte"
     }
-    escogerDireccion(via) {
-        if (this.direccion != via.direccion) {
-            if (this.direccion != "Cambiando") {
-                this.cooldown = 0
-                this.densidadVehicular = 0
-                this.proximaDireccion = via.direccion
+    escogerDireccion(via, festivo) {
+        if (!festivo) {
+            if (this.direccion != via.direccion) {
+                if (this.direccion != "Cambiando") {
+                    this.cooldown = 0
+                    this.densidadVehicular = 0
+                    this.proximaDireccion = via.direccion
+                }
+                this.direccion = "Cambiando"
+                via.contarApertura()
             }
-            this.direccion = "Cambiando"
-            via.contarApertura()
+        } else {
+            this.direccion = "Sur"
         }
     }
     enfriar(tiempo) {
